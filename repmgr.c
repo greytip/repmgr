@@ -110,6 +110,7 @@ main(int argc, char **argv)
 		{"wait", no_argument, NULL, 'W'},
 		{"ignore-rsync-warning", no_argument, NULL, 'I'},
 		{"verbose", no_argument, NULL, 'v'},
+		{"debian", no_argument, NULL, 'x'},
 		{NULL, 0, NULL, 0}
 	};
 
@@ -186,6 +187,9 @@ main(int argc, char **argv)
 			break;
 		case 'v':
 			runtime_options.verbose = true;
+			break;
+		case 'x':
+			runtime_options.debian = true;
 			break;
 		default:
 			usage();
@@ -1643,7 +1647,15 @@ do_witness_create(void)
 
 	snprintf(buf, sizeof(buf), "listen_addresses = '*'\n") ;
 	fputs(buf, pg_conf);
+	
+	if (runtime_options.debian) {
+		snprintf(buf, sizeof(buf), "unix_socket_directory = '/var/run/postgresql'\n");
+		fputs(buf, pg_conf);
 
+		snprintf(buf, sizeof(buf), "data_directory = '%s'", runtime_options.dest_dir);
+		fputs(buf, pg_conf);
+	}
+	
 	fclose(pg_conf);
 
 	/* Get the pg_hba.conf full path */
@@ -1700,6 +1712,26 @@ do_witness_create(void)
 		log_err(_("Cannot insert node details, %s\n"), PQerrorMessage(masterconn));
 		PQfinish(masterconn);
 		exit(ERR_DB_QUERY);
+	}
+
+	/* create a repmgr user and db in witness */
+	sprintf(script, "createuser -h /var/run/postgresql -p %s -s %s", runtime_options.localport, "repmgr");
+	log_info(_("create repmgr user for witness: %s"), script);
+	r = system(script);
+	if (r != 0)
+	{
+		log_err(_("Can't create repmgr user for witness server\n"));
+		PQfinish(masterconn);
+		exit(ERR_BAD_CONFIG);
+	}
+	sprintf(script, "createdb -h /var/run/postgresql -p %s -O %s %s", runtime_options.localport, "repmgr", "repmgr");
+	log_info(_("create repmgr db for witness: %s"), script);
+	r = system(script);
+	if (r != 0)
+	{
+		log_err(_("Can't create repmgr db for witness server\n"));
+		PQfinish(masterconn);
+		exit(ERR_BAD_CONFIG);
 	}
 
 	/* establish a connection to the witness, and create the schema */

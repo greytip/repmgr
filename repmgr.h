@@ -64,6 +64,8 @@ typedef struct
 
 	char masterport[MAXLEN];
 	char localport[MAXLEN];
+	
+	bool debian;
 
 	/* parameter used by CLUSTER CLEANUP */
 	int keep_history;
