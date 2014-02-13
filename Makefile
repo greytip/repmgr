@@ -9,6 +9,7 @@ DATA = repmgr.sql uninstall_repmgr.sql
 
 PG_CPPFLAGS = -I$(libpq_srcdir)
 PG_LIBS = $(libpq_pgport)
+PG_VERSION = 9.3
 
 all:  repmgrd repmgr
 	$(MAKE) -C sql
@@ -58,12 +59,12 @@ clean:
 deb: repmgrd repmgr
 	mkdir -p ./debian/usr/bin
 	cp repmgrd repmgr ./debian/usr/bin/
-	mkdir -p ./debian/usr/share/postgresql/9.0/contrib/
-	cp sql/repmgr_funcs.sql ./debian/usr/share/postgresql/9.0/contrib/
-	cp sql/uninstall_repmgr_funcs.sql ./debian/usr/share/postgresql/9.0/contrib/
-	mkdir -p ./debian/usr/lib/postgresql/9.0/lib/
-	cp sql/repmgr_funcs.so ./debian/usr/lib/postgresql/9.0/lib/
+	mkdir -p ./debian/usr/share/postgresql/$(PG_VERSION)/contrib/
+	cp sql/repmgr_funcs.sql ./debian/usr/share/postgresql/$(PG_VERSION)/contrib/
+	cp sql/uninstall_repmgr_funcs.sql ./debian/usr/share/postgresql/$(PG_VERSION)/contrib/
+	mkdir -p ./debian/usr/lib/postgresql/$(PG_VERSION)/lib/
+	cp sql/repmgr_funcs.so ./debian/usr/lib/postgresql/$(PG_VERSION)/lib/
 	dpkg-deb --build debian
-	mv debian.deb ../postgresql-repmgr-9.0_1.0.0.deb
+	mv debian.deb ../postgresql-repmgr-$(PG_VERSION)_2.0.0.deb
 	rm -rf ./debian/usr
 
