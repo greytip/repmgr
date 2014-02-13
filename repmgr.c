@@ -1649,9 +1649,6 @@ do_witness_create(void)
 	fputs(buf, pg_conf);
 	
 	if (runtime_options.debian) {
-		snprintf(buf, sizeof(buf), "unix_socket_directory = '/var/run/postgresql'\n");
-		fputs(buf, pg_conf);
-
 		snprintf(buf, sizeof(buf), "data_directory = '%s'", runtime_options.dest_dir);
 		fputs(buf, pg_conf);
 	}
